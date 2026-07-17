@@ -39,7 +39,7 @@ Java 21과 Spring Boot 4.1.0을 사용합니다.
 
 - [x] 1단계: 관측용 장기 요청 API와 버전·인스턴스 정보 추가
 - [x] 2단계: Immediate Shutdown에서 처리 중 요청 중단 확인
-- [ ] 3단계: Graceful Shutdown에서 처리 중 요청 완료 확인
+- [x] 3단계: Graceful Shutdown에서 처리 중 요청 완료 확인
 - [ ] 4단계: 단일 서버 재배포 중 신규 요청 중단 확인
 - [ ] 5단계: Blue/Green 배포로 요청 중단 제거
 - [ ] 후속 과제: 서버 버전 혼재에 따른 세션·캐시 문제 확인
@@ -65,6 +65,13 @@ Java 21과 Spring Boot 4.1.0을 사용합니다.
 - Prometheus와 Grafana로 사용자별 처리 신호가 `5~1`에서 `0`으로 내려가는 장면을 시각화
 - 실행 결과는 로컬에만 누적하고 설정, 스크립트, 검증 문서만 Git에 공유
 
+#### 2026-07-18 — 3단계: Graceful Shutdown 검증 완료
+
+- VU 5명이 각각 하나의 30초 요청을 실행하도록 3단계 실험을 분리
+- 요청 처리 중 `SIGTERM`을 보낸 뒤에도 사용자 5명의 요청이 모두 정상 완료되는 것을 확인
+- 완료 요청 5건, 중단 요청 0건, HTTP 요청 실패율 `0%`를 확인
+- 서버가 기존 요청 완료를 기다린 뒤 Graceful Shutdown을 완료하는 흐름을 Grafana와 로그로 확인
+
 ### 2단계 관측 전략
 
 Immediate Shutdown 실험에서는 k6와 애플리케이션 로그를 함께 사용한다.
@@ -82,6 +89,8 @@ Loki는 2단계의 필수 구성에서 제외한다.
 - 학습용으로 범위가 고정된 `user-1`부터 `user-5`까지를 Prometheus 라벨로 사용한다.
 
 2단계의 실행 방법과 검증 기준은 [`docs/experiments/step-02-immediate-shutdown.md`](docs/experiments/step-02-immediate-shutdown.md)에 별도로 누적한다.
+
+3단계의 실행 방법과 검증 기준은 [`docs/experiments/step-03-graceful-shutdown.md`](docs/experiments/step-03-graceful-shutdown.md)에 별도로 누적한다.
 
 ### 1단계 실행 방법
 
