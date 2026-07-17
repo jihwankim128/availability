@@ -35,3 +35,8 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Local experiment results ###
+results/**/*
+!results/**/
+!results/**/README.md

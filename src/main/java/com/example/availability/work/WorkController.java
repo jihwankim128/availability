@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -36,10 +37,13 @@ public class WorkController {
 	}
 
 	@GetMapping("/work")
-	public WorkResult work(@RequestParam(defaultValue = "10") long seconds) throws InterruptedException {
+	public WorkResult work(
+			@RequestParam(defaultValue = "10") long seconds,
+			@RequestHeader(name = "X-Request-Id", required = false) String requestedId
+	) throws InterruptedException {
 		validateSeconds(seconds);
 
-		String requestId = UUID.randomUUID().toString();
+		String requestId = resolveRequestId(requestedId);
 		Instant startedAt = Instant.now();
 		log.info(
 				"work started: requestId={}, version={}, instance={}, seconds={}",
@@ -77,6 +81,13 @@ public class WorkController {
 				startedAt,
 				completedAt
 		);
+	}
+
+	private String resolveRequestId(String requestedId) {
+		if (requestedId == null || requestedId.isBlank()) {
+			return UUID.randomUUID().toString();
+		}
+		return requestedId;
 	}
 
 	private void validateSeconds(long seconds) {
