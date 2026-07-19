@@ -42,7 +42,9 @@ Java 21과 Spring Boot 4.1.0을 사용합니다.
 - [x] 3단계: Graceful Shutdown에서 처리 중 요청 완료 확인
 - [x] 4단계: 단일 서버 재배포 중 신규 요청 중단 확인
 - [x] 5단계: Blue/Green 배포로 요청 중단 제거
-- [ ] 후속 과제: 서버 버전 혼재에 따른 세션·캐시 문제 확인
+- [x] 6단계: Blue/Green 전환 후 로컬 세션 유실 확인
+- [ ] 7단계: Redis 공유 세션으로 전환 후 로그인 상태 유지 확인
+- [ ] 후속 과제: 버전 혼재에 따른 세션 직렬화·캐시 문제 확인
 
 ### History
 
@@ -86,6 +88,12 @@ Java 21과 Spring Boot 4.1.0을 사용합니다.
 - 총 200개 요청에서 Blue 응답 65개, Green 응답 135개, 실패 0개를 확인
 - Green 전환 확인 후 Blue를 Graceful Shutdown하고 전환 전 실패 시 Blue로 롤백하도록 구성
 
+#### 2026-07-19 — 6단계: 로컬 세션 유실 검증 완료
+
+- Blue에서 발급한 세션 쿠키를 유지한 채 Green으로 트래픽 전환
+- HTTP 요청은 Green에 정상 도달하지만 프로세스 메모리가 분리되어 `401 Unauthorized`가 반환되는 것을 확인
+- Grafana에서 응답 서버가 `Blue v1 → Green v2`, 세션 조회 결과가 `3(200) → 2(401)`로 바뀌는 흐름을 시각화
+
 ### 2단계 관측 전략
 
 Immediate Shutdown 실험에서는 k6와 애플리케이션 로그를 함께 사용한다.
@@ -109,6 +117,8 @@ Loki는 2단계의 필수 구성에서 제외한다.
 4단계의 실행 방법과 검증 기준은 [`docs/experiments/step-04-single-server-redeploy.md`](docs/experiments/step-04-single-server-redeploy.md)에 별도로 누적한다.
 
 5단계의 실행 방법과 검증 기준은 [`docs/experiments/step-05-blue-green-deployment.md`](docs/experiments/step-05-blue-green-deployment.md)에 별도로 누적한다.
+
+6단계의 실행 방법과 검증 기준은 [`docs/experiments/step-06-local-session-loss.md`](docs/experiments/step-06-local-session-loss.md)에 별도로 누적한다.
 
 ### 1단계 실행 방법
 

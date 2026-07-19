@@ -1,0 +1,241 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "같은 SESSION 쿠키로 조회한 결과입니다. 성공은 3, 세션 유실은 2로 표시하고 축 범위는 0부터 4까지 둡니다.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "axisLabel": "HTTP 응답과 세션 상태",
+            "drawStyle": "line",
+            "fillOpacity": 25,
+            "gradientMode": "scheme",
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 3,
+            "pointSize": 5,
+            "showPoints": "always"
+          },
+          "decimals": 0,
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "text": "0"
+                },
+                "1": {
+                  "text": "1"
+                },
+                "2": {
+                  "text": "401 · 세션 유실"
+                },
+                "3": {
+                  "text": "200 · 세션 유지"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "max": 4,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 3
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "k6_session_available_signal{session_mode=\"local\",run_id=~\"$run_id\"} + 2",
+          "legendFormat": "{{run_id}} · {{user_id}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "세션 조회 결과 · 200 OK / 401 Unauthorized",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "같은 시간에 요청을 처리한 서버입니다. 1은 Blue v1, 2는 Green v2입니다.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "응답 서버",
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 3,
+            "pointSize": 5,
+            "showPoints": "always"
+          },
+          "decimals": 0,
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "text": "응답 없음"
+                },
+                "1": {
+                  "text": "Blue v1"
+                },
+                "2": {
+                  "text": "Green v2"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "max": 2,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 9
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "k6_session_backend_signal{session_mode=\"local\",run_id=~\"$run_id\"}",
+          "legendFormat": "{{run_id}} · 응답 서버",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Blue에서 Green으로 전환",
+      "type": "timeseries"
+    },
+    {
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
+      "id": 3,
+      "options": {
+        "content": "### 그래프 읽는 법\n\n- 응답 서버가 `Blue v1 → Green v2`로 바뀌면서 세션 조회 결과는 `3(200 OK) → 2(401)`로 내려갑니다.\n- 실습은 한 명의 사용자가 같은 쿠키로 1초마다 세션을 조회합니다.",
+        "mode": "markdown"
+      },
+      "targets": [],
+      "title": "비교 기준",
+      "type": "text"
+    }
+  ],
+  "refresh": "1s",
+  "schemaVersion": 41,
+  "tags": [
+    "availability",
+    "k6",
+    "session"
+  ],
+  "templating": {
+    "list": [
+      {
+        "allValue": ".*",
+        "current": {},
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(k6_session_available_signal{session_mode=\"local\"}, run_id)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "실행 ID",
+        "multi": false,
+        "name": "run_id",
+        "options": [],
+        "query": "label_values(k6_session_available_signal{session_mode=\"local\"}, run_id)",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 2,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "6단계 - 로컬 세션 유실",
+  "uid": "session-continuity",
+  "version": 1
+}

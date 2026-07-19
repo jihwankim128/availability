@@ -1,6 +1,6 @@
 # Observability
 
-2단계와 3단계의 종료 동작을 같은 Grafana 대시보드에서 비교하기 위한 로컬 관측 환경이다.
+종료 동작과 세션 연속성을 Grafana에서 확인하기 위한 로컬 관측 환경이다.
 
 ## 구성
 
@@ -17,6 +17,7 @@ bash scripts/observability/start.sh
 ```
 
 - Grafana: <http://localhost:3000/d/step-02-immediate-shutdown>
+- 세션 연속성 대시보드: <http://localhost:3000/d/session-continuity>
 - 계정: `admin` / `admin`
 - Prometheus: <http://localhost:9090>
 

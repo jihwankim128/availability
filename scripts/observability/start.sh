@@ -21,7 +21,8 @@ for _ in {1..60}; do
 
   if [[ "${PROMETHEUS_READY}" == true && "${GRAFANA_READY}" == true ]]; then
     echo "Prometheus: http://localhost:9090"
-    echo "Grafana: http://localhost:3000/d/step-02-immediate-shutdown"
+    echo "Grafana shutdown dashboard: http://localhost:3000/d/step-02-immediate-shutdown"
+    echo "Grafana session dashboard: http://localhost:3000/d/session-continuity"
     echo "Grafana login: admin / admin"
     exit 0
   fi
