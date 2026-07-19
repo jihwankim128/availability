@@ -1,0 +1,14 @@
+services:
+  proxy:
+    image: nginx:1.29-alpine
+    ports:
+      - "127.0.0.1:8080:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ../../build/step-07/nginx:/etc/nginx/conf.d:ro
+
+  redis:
+    image: redis:8-alpine
+    ports:
+      - "127.0.0.1:6379:6379"

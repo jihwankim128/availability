@@ -77,9 +77,9 @@ k6가 실행 중일 때 다른 터미널에서 Green으로 전환한다.
 bash scripts/step-06/deploy-green.sh
 ```
 
-Grafana의 <http://localhost:3000/d/session-continuity>에서 실행 ID를 현재 값으로 선택한다.
+Grafana의 <http://localhost:3000/d/session-continuity>에서 세션 저장소를 `local`, 실행 ID를 현재 값으로 선택한다.
 
-여러 결과를 찾거나 비교할 때는 실행 ID의 `All`을 선택한다. `All` 상태에서는 범례의 실행 ID로 각 선을 구분한다.
+여러 결과를 찾거나 비교할 때는 세션 저장소와 실행 ID의 `All`을 선택한다. `All` 상태에서는 범례의 저장소와 실행 ID로 각 선을 구분한다.
 
 - `Blue v1 → Green v2`: 실제 응답 서버가 전환됨
 - `세션 유지(3) → 세션 유실(2)`: 같은 쿠키가 Green에서는 조회되지 않음

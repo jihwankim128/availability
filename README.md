@@ -43,7 +43,7 @@ Java 21과 Spring Boot 4.1.0을 사용합니다.
 - [x] 4단계: 단일 서버 재배포 중 신규 요청 중단 확인
 - [x] 5단계: Blue/Green 배포로 요청 중단 제거
 - [x] 6단계: Blue/Green 전환 후 로컬 세션 유실 확인
-- [ ] 7단계: Redis 공유 세션으로 전환 후 로그인 상태 유지 확인
+- [x] 7단계: Redis 공유 세션으로 전환 후 로그인 상태 유지 확인
 - [ ] 후속 과제: 버전 혼재에 따른 세션 직렬화·캐시 문제 확인
 
 ### History
@@ -94,6 +94,12 @@ Java 21과 Spring Boot 4.1.0을 사용합니다.
 - HTTP 요청은 Green에 정상 도달하지만 프로세스 메모리가 분리되어 `401 Unauthorized`가 반환되는 것을 확인
 - Grafana에서 응답 서버가 `Blue v1 → Green v2`, 세션 조회 결과가 `3(200) → 2(401)`로 바뀌는 흐름을 시각화
 
+#### 2026-07-19 — 7단계: Redis 공유 세션 연속성 검증 완료
+
+- Blue와 Green이 같은 Redis 세션 저장소와 네임스페이스를 사용하도록 구성
+- Blue에서 발급한 쿠키로 Green 전환 후에도 같은 세션 ID와 사용자 정보가 `200 OK`로 유지되는 것을 확인
+- Grafana에서 응답 서버가 바뀌어도 세션 조회 결과가 `3(200)`을 유지하는 흐름을 6단계와 같은 축으로 비교
+
 ### 2단계 관측 전략
 
 Immediate Shutdown 실험에서는 k6와 애플리케이션 로그를 함께 사용한다.
@@ -119,6 +125,8 @@ Loki는 2단계의 필수 구성에서 제외한다.
 5단계의 실행 방법과 검증 기준은 [`docs/experiments/step-05-blue-green-deployment.md`](docs/experiments/step-05-blue-green-deployment.md)에 별도로 누적한다.
 
 6단계의 실행 방법과 검증 기준은 [`docs/experiments/step-06-local-session-loss.md`](docs/experiments/step-06-local-session-loss.md)에 별도로 누적한다.
+
+7단계의 실행 방법과 검증 기준은 [`docs/experiments/step-07-redis-session-continuity.md`](docs/experiments/step-07-redis-session-continuity.md)에 별도로 누적한다.
 
 ### 1단계 실행 방법
 

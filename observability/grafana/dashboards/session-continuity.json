@@ -89,8 +89,8 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "k6_session_available_signal{session_mode=\"local\",run_id=~\"$run_id\"} + 2",
-          "legendFormat": "{{run_id}} · {{user_id}}",
+          "expr": "k6_session_available_signal{session_mode=~\"$session_mode\",run_id=~\"$run_id\"} + 2",
+          "legendFormat": "{{session_mode}} · {{run_id}} · {{user_id}}",
           "range": true,
           "refId": "A"
         }
@@ -171,8 +171,8 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "k6_session_backend_signal{session_mode=\"local\",run_id=~\"$run_id\"}",
-          "legendFormat": "{{run_id}} · 응답 서버",
+          "expr": "k6_session_backend_signal{session_mode=~\"$session_mode\",run_id=~\"$run_id\"}",
+          "legendFormat": "{{session_mode}} · {{run_id}} · 응답 서버",
           "range": true,
           "refId": "A"
         }
@@ -189,7 +189,7 @@
       },
       "id": 3,
       "options": {
-        "content": "### 그래프 읽는 법\n\n- 응답 서버가 `Blue v1 → Green v2`로 바뀌면서 세션 조회 결과는 `3(200 OK) → 2(401)`로 내려갑니다.\n- 실습은 한 명의 사용자가 같은 쿠키로 1초마다 세션을 조회합니다.",
+        "content": "### 그래프 읽는 법\n\n- **6단계(local)**: 응답 서버가 `Blue v1 → Green v2`로 바뀌면서 세션 조회 결과는 `3(200 OK) → 2(401)`로 내려갑니다.\n- **7단계(redis)**: 응답 서버가 바뀌어도 세션 조회 결과는 `3(200 OK)`을 유지합니다.\n- 실습은 한 명의 사용자가 같은 쿠키로 1초마다 세션을 조회합니다.",
         "mode": "markdown"
       },
       "targets": [],
@@ -208,19 +208,46 @@
     "list": [
       {
         "allValue": ".*",
+        "current": {
+          "text": "local",
+          "value": "local"
+        },
+        "hide": 0,
+        "includeAll": true,
+        "label": "세션 저장소",
+        "multi": false,
+        "name": "session_mode",
+        "options": [
+          {
+            "selected": true,
+            "text": "local",
+            "value": "local"
+          },
+          {
+            "selected": false,
+            "text": "redis",
+            "value": "redis"
+          }
+        ],
+        "query": "local,redis",
+        "skipUrlSync": false,
+        "type": "custom"
+      },
+      {
+        "allValue": ".*",
         "current": {},
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(k6_session_available_signal{session_mode=\"local\"}, run_id)",
+        "definition": "label_values(k6_session_available_signal{session_mode=~\"$session_mode\"}, run_id)",
         "hide": 0,
         "includeAll": true,
         "label": "실행 ID",
         "multi": false,
         "name": "run_id",
         "options": [],
-        "query": "label_values(k6_session_available_signal{session_mode=\"local\"}, run_id)",
+        "query": "label_values(k6_session_available_signal{session_mode=~\"$session_mode\"}, run_id)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
@@ -235,7 +262,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "6단계 - 로컬 세션 유실",
+  "title": "6·7단계 - 세션 연속성",
   "uid": "session-continuity",
-  "version": 1
+  "version": 2
 }
