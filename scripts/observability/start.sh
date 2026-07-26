@@ -20,9 +20,11 @@ for _ in {1..60}; do
   fi
 
   if [[ "${PROMETHEUS_READY}" == true && "${GRAFANA_READY}" == true ]]; then
+    curl -fsS -X POST http://localhost:9090/-/reload >/dev/null
     echo "Prometheus: http://localhost:9090"
     echo "Grafana shutdown dashboard: http://localhost:3000/d/step-02-immediate-shutdown"
     echo "Grafana session dashboard: http://localhost:3000/d/session-continuity"
+    echo "Grafana external API dashboard: http://localhost:3000/d/external-api-step-01-latency-propagation"
     echo "Grafana login: admin / admin"
     exit 0
   fi

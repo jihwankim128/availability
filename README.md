@@ -7,8 +7,10 @@
 ### 외부 API 장애
 
 - 외부 API의 지연과 실패가 서비스에 미치는 영향 확인
-- Timeout과 Retry의 동작 이해
+- Connect Timeout과 Read Timeout으로 외부 호출 대기 시간 제한
 - Circuit Breaker를 이용한 장애 전파 방지
+- Retry, Rate Limit, Bulkhead는 핵심 실습 이후의 확장 주제로 구분
+- 외부 API 실습은 별도 커리큘럼으로 분리하고 [`docs/external-api/README.md`](docs/external-api/README.md)에서 1단계부터 관리
 
 ### 무중단 배포
 

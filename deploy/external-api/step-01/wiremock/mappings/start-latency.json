@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPath": "/__lab/control/slow"
+  },
+  "scenarioName": "external-api-latency",
+  "requiredScenarioState": "Started",
+  "newScenarioState": "slow",
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "mode": "slow",
+      "delayMilliseconds": 5000
+    }
+  }
+}

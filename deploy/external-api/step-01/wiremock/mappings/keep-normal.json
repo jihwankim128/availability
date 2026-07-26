@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPath": "/__lab/control/normal"
+  },
+  "scenarioName": "external-api-latency",
+  "requiredScenarioState": "Started",
+  "newScenarioState": "Started",
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "mode": "normal",
+      "delayMilliseconds": 0
+    }
+  }
+}

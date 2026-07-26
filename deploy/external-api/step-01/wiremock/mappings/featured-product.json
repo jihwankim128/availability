@@ -1,0 +1,18 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/external/products/featured"
+  },
+  "scenarioName": "external-api-latency",
+  "requiredScenarioState": "Started",
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "id": "featured-1",
+      "name": "availability-book"
+    }
+  }
+}

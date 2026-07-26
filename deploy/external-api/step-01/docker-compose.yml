@@ -1,0 +1,15 @@
+name: availability-external-api-step-01
+
+services:
+  external-api:
+    image: wiremock/wiremock:3.13.2
+    ports:
+      - "9091:8080"
+    volumes:
+      - ./wiremock:/home/wiremock:ro
+    command:
+      - --async-response-enabled
+      - --async-response-threads
+      - "100"
+      - --container-threads
+      - "100"
