@@ -14,7 +14,7 @@
 
 - [x] 1단계: 외부 API 지연이 정상 API까지 전파되는 현상 확인
 - [x] 2단계: Connect Timeout으로 TCP 연결 대기 시간 제한
-- [ ] 3단계: Read Timeout으로 연결 후 응답 대기 시간 제한
+- [x] 3단계: Read Timeout으로 연결 후 응답 대기 시간 제한
 - [ ] 4단계: Timeout 적용 후에도 지속되는 외부 호출과 실패 확인
 - [ ] 5단계: Circuit Breaker로 연쇄 장애 차단
 - [ ] 후속 과제: Retry, Bulkhead, Inbound·Outbound Rate Limit, Idempotency Key
@@ -64,7 +64,18 @@
 - 관계없는 `/api/info` 121건은 모두 1초 안에 HTTP 200으로 완료되고 p95 약 7.82ms 유지
 - 실행 ID `20260726-210955`의 k6 JSON·HTML 결과와 Grafana 대시보드 확인
 
+### 2026-07-27 — 3단계: Read Timeout으로 응답 지연 격리
+
+- TCP 연결은 정상적으로 성립하지만 WireMock 응답만 5초 늦어지는 장애를 15~40초 구간에 재현
+- Spring Read Timeout 1초가 k6 Client Timeout 3초보다 먼저 동작하도록 구성
+- 지연 요청 250건이 모두 약 1초 후 HTTP 504로 끝나고 k6 Client Timeout은 0건임을 확인
+- Spring 메트릭에서 `read_timeout` 250건, `connect_timeout` 0건으로 장애 유형을 구분
+- 외부 API 처리 중 요청은 최대 10개, Tomcat 사용 중 Thread는 최대 `11/40`으로 제한
+- 관계없는 `/api/info` 121건은 모두 1초 안에 HTTP 200으로 완료되고 p95 약 10.36ms 유지
+- 실행 ID `20260727-100600`의 k6 JSON·HTML 결과와 Grafana 대시보드 확인
+
 ## 단계별 문서
 
 - [1단계: 외부 API 지연 전파](step-01-latency-propagation.md)
 - [2단계: Connect Timeout](step-02-connect-timeout.md)
+- [3단계: Read Timeout](step-03-read-timeout.md)
