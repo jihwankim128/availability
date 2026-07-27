@@ -1,0 +1,128 @@
+{
+  "annotations": {"list": []},
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "0은 정상·복구, 1은 WireMock 응답이 5초 지연된 구간입니다.",
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "custom": {"axisLabel": "외부 API 상태", "drawStyle": "line", "fillOpacity": 35, "lineInterpolation": "stepAfter", "lineWidth": 3, "pointSize": 5, "showPoints": "always"}, "decimals": 0, "mappings": [{"options": {"0": {"text": "정상"}, "1": {"text": "5초 지연"}}, "type": "value"}], "max": 1, "min": 0, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}}, "overrides": []},
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 0},
+      "id": 1,
+      "options": {"legend": {"calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "single", "sort": "none"}},
+      "targets": [{"editorMode": "code", "expr": "k6_external_fault_signal{run_id=~\"$run_id\"}", "legendFormat": "외부 API 장애 상태", "range": true, "refId": "A"}],
+      "title": "외부 API 지속 장애 구간",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "외부 기능 목표 유입량입니다. 장애 구간에 10 RPS에서 50 RPS로 증가합니다.",
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "custom": {"axisLabel": "외부 기능 RPS", "drawStyle": "line", "fillOpacity": 25, "lineInterpolation": "stepAfter", "lineWidth": 3, "pointSize": 5, "showPoints": "always"}, "min": 0, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "orange", "value": 40}]}, "unit": "reqps"}, "overrides": []},
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 0},
+      "id": 2,
+      "options": {"legend": {"calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "single", "sort": "none"}},
+      "targets": [{"editorMode": "code", "expr": "k6_external_request_rate_signal{run_id=~\"$run_id\"}", "legendFormat": "목표 외부 기능 RPS", "range": true, "refId": "A"}],
+      "title": "외부 기능 유입량",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "서버가 1초 Read Timeout 후 반환한 504와 Tomcat 대기열에서 3초를 넘긴 k6 Client Timeout을 구분합니다.",
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "초당 완료 요청", "drawStyle": "line", "fillOpacity": 18, "lineInterpolation": "linear", "lineWidth": 2, "pointSize": 4, "showPoints": "auto"}, "min": 0, "unit": "reqps"}, "overrides": [{"matcher": {"id": "byName", "options": "서버 Read Timeout → HTTP 504"}, "properties": [{"id": "color", "value": {"fixedColor": "orange", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "k6 Client Timeout"}, "properties": [{"id": "color", "value": {"fixedColor": "red", "mode": "fixed"}}]}]},
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 6},
+      "id": 3,
+      "options": {"legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"editorMode": "code", "expr": "rate(k6_external_user_success_total{run_id=~\"$run_id\"}[5s])", "legendFormat": "외부 기능 HTTP 200", "range": true, "refId": "A"},
+        {"editorMode": "code", "expr": "rate(k6_external_server_timeout_total{run_id=~\"$run_id\"}[5s])", "legendFormat": "서버 Read Timeout → HTTP 504", "range": true, "refId": "B"},
+        {"editorMode": "code", "expr": "rate(k6_external_client_timeout_total{run_id=~\"$run_id\"}[5s])", "legendFormat": "k6 Client Timeout", "range": true, "refId": "C"}
+      ],
+      "title": "외부 기능 사용자 응답 결과",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "외부 API를 사용하지 않는 /api/info의 성공과 Client Timeout을 확인합니다.",
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "초당 완료 요청", "drawStyle": "line", "fillOpacity": 18, "lineInterpolation": "linear", "lineWidth": 2, "pointSize": 4, "showPoints": "auto"}, "min": 0, "unit": "reqps"}, "overrides": [{"matcher": {"id": "byName", "options": "정상 API 실패"}, "properties": [{"id": "color", "value": {"fixedColor": "red", "mode": "fixed"}}]}]},
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 6},
+      "id": 4,
+      "options": {"legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"editorMode": "code", "expr": "rate(k6_normal_api_success_total{run_id=~\"$run_id\"}[5s])", "legendFormat": "정상 API HTTP 200", "range": true, "refId": "A"},
+        {"editorMode": "code", "expr": "rate(k6_normal_api_failure_total{run_id=~\"$run_id\"}[5s])", "legendFormat": "정상 API 실패", "range": true, "refId": "B"}
+      ],
+      "title": "정상 API 사용자 응답 결과",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "/api/info가 HTTP 200이면서 1초 안에 완료된 비율입니다. 장애 구간에 하락해야 Timeout의 한계가 확인됩니다.",
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "custom": {"axisLabel": "1초 이내 성공률", "drawStyle": "line", "fillOpacity": 25, "lineInterpolation": "linear", "lineWidth": 3, "pointSize": 4, "showPoints": "auto"}, "max": 100, "min": 0, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "orange", "value": 80}, {"color": "green", "value": 99}]}, "unit": "percent"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 15},
+      "id": 5,
+      "options": {"legend": {"calcs": ["min", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "single", "sort": "none"}},
+      "targets": [{"editorMode": "code", "expr": "100 * rate(k6_normal_api_available_total{run_id=~\"$run_id\"}[5s]) / clamp_min(rate(k6_normal_api_available_total{run_id=~\"$run_id\"}[5s]) + rate(k6_normal_api_unavailable_total{run_id=~\"$run_id\"}[5s]), 0.001)", "legendFormat": "정상 API 가용 요청", "range": true, "refId": "A"}],
+      "title": "정상 API 가용 요청 비율",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "정상 API p95가 사용자 가용성 기준 1초와 k6 Client Timeout 3초에 가까워지는지 확인합니다.",
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "정상 API 응답시간", "drawStyle": "line", "fillOpacity": 15, "lineInterpolation": "linear", "lineWidth": 2, "pointSize": 4, "showPoints": "auto"}, "min": 0, "unit": "s"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 15},
+      "id": 6,
+      "options": {"legend": {"calcs": ["max", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [{"editorMode": "code", "expr": "k6_normal_api_duration_p95{run_id=~\"$run_id\"}", "legendFormat": "정상 API p95", "range": true, "refId": "A"}],
+      "title": "정상 API 응답시간",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "사용 중 Thread가 40개 한계에 도달하는지 확인합니다.",
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "Tomcat Thread", "drawStyle": "line", "fillOpacity": 20, "lineInterpolation": "linear", "lineWidth": 3, "pointSize": 4, "showPoints": "auto"}, "decimals": 0, "min": 0}, "overrides": []},
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 24},
+      "id": 7,
+      "options": {"legend": {"calcs": ["max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"editorMode": "code", "expr": "max_over_time(tomcat_threads_busy_threads{run_id=~\"$run_id\"}[5s])", "legendFormat": "사용 중 Thread", "range": true, "refId": "A"},
+        {"editorMode": "code", "expr": "tomcat_threads_config_max_threads{run_id=~\"$run_id\"}", "legendFormat": "최대 Thread", "range": true, "refId": "B"}
+      ],
+      "title": "Tomcat Thread 재포화",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "1초 Read Timeout이 계속 발생하며 외부 응답 대기 요청이 Thread 한계까지 증가하는지 확인합니다.",
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "요청 수", "drawStyle": "line", "fillOpacity": 20, "lineInterpolation": "linear", "lineWidth": 3, "pointSize": 4, "showPoints": "auto"}, "decimals": 0, "min": 0}, "overrides": []},
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 24},
+      "id": 8,
+      "options": {"legend": {"calcs": ["max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"editorMode": "code", "expr": "max_over_time(external_api_in_flight{run_id=~\"$run_id\"}[5s])", "legendFormat": "외부 응답 대기 중", "range": true, "refId": "A"},
+        {"editorMode": "code", "expr": "rate(external_api_failures_total{run_id=~\"$run_id\",reason=\"read_timeout\"}[5s])", "legendFormat": "초당 Read Timeout", "range": true, "refId": "B"}
+      ],
+      "title": "지속되는 외부 호출과 Timeout",
+      "type": "timeseries"
+    },
+    {
+      "gridPos": {"h": 9, "w": 24, "x": 0, "y": 33},
+      "id": 9,
+      "options": {"content": "### 그래프 읽는 법\n\n- **0~10초 정상**: 외부 기능 10 RPS와 정상 API 2 RPS가 빠르게 완료됩니다.\n- **10~50초 지속 장애·과부하**: 외부 API는 5초 지연되고 외부 기능 유입은 50 RPS로 증가합니다.\n- **Timeout의 한계**: 호출당 대기는 1초로 제한되지만 `50 RPS × 1초 > Thread 40개`이므로 공유 Thread Pool이 다시 포화됩니다.\n- **장애 전파**: 외부 API와 관계없는 `/api/info` 응답시간이 증가하고 가용 요청 비율이 하락합니다.\n- **50~70초 복구**: 외부 지연과 과부하를 제거하면 Thread와 정상 API가 회복됩니다.\n- 다음 단계에서는 같은 조건에 Circuit Breaker를 적용해 외부 호출을 즉시 차단하고 정상 API를 보호합니다.", "mode": "markdown"},
+      "targets": [],
+      "title": "외부 API 4단계 관측 기준",
+      "type": "text"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 41,
+  "tags": ["availability", "k6", "external-api", "timeout-limit"],
+  "templating": {"list": [{"allValue": ".*", "current": {}, "datasource": {"type": "prometheus", "uid": "prometheus"}, "definition": "label_values(k6_external_fault_signal, run_id)", "hide": 0, "includeAll": true, "label": "실행 ID", "multi": false, "name": "run_id", "options": [], "query": "label_values(k6_external_fault_signal, run_id)", "refresh": 2, "regex": "", "skipUrlSync": false, "sort": 2, "type": "query"}]},
+  "time": {"from": "now-30m", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "외부 API 4단계 - Timeout의 한계",
+  "uid": "external-api-step-04-timeout-limit",
+  "version": 1
+}

@@ -15,7 +15,7 @@
 - [x] 1단계: 외부 API 지연이 정상 API까지 전파되는 현상 확인
 - [x] 2단계: Connect Timeout으로 TCP 연결 대기 시간 제한
 - [x] 3단계: Read Timeout으로 연결 후 응답 대기 시간 제한
-- [ ] 4단계: Timeout 적용 후에도 지속되는 외부 호출과 실패 확인
+- [x] 4단계: 지속 장애와 높은 유입량에서 드러나는 Timeout의 한계 확인
 - [ ] 5단계: Circuit Breaker로 연쇄 장애 차단
 - [ ] 후속 과제: Retry, Bulkhead, Inbound·Outbound Rate Limit, Idempotency Key
 
@@ -74,8 +74,20 @@
 - 관계없는 `/api/info` 121건은 모두 1초 안에 HTTP 200으로 완료되고 p95 약 10.36ms 유지
 - 실행 ID `20260727-100600`의 k6 JSON·HTML 결과와 Grafana 대시보드 확인
 
+### 2026-07-28 — 4단계: 지속 장애와 높은 유입량에서 Timeout의 한계 확인
+
+- 5초 응답 지연 중 외부 기능 유입을 10 RPS에서 50 RPS로 높이고 Read Timeout 1초를 유지
+- `50 RPS × 1초`가 Tomcat 최대 Thread 40개를 넘어 사용 중 Thread가 `40/40`, 외부 처리 중 요청이 최대 39개에 도달
+- 외부 기능은 HTTP 504 412건 외에 k6 Client Timeout 1,423건이 발생하고, Spring에서는 `read_timeout` 1,581건을 처리
+- 클라이언트가 포기해도 서버 대기열의 요청이 계속 실행되는 불필요한 작업을 확인
+- 관계없는 `/api/info`는 141건 중 49건 실패, 69건이 가용성 기준을 위반하고 p95 약 2.99초 기록
+- 정상 API 가용 요청은 72/141건, 약 51.1%까지 하락
+- 복구 후 외부 처리 중 요청 0개, Tomcat 사용 중 Thread 1개로 돌아오는 것을 확인
+- 실행 ID `20260728-010358`의 k6 JSON·HTML 결과와 Grafana 대시보드 확인
+
 ## 단계별 문서
 
 - [1단계: 외부 API 지연 전파](step-01-latency-propagation.md)
 - [2단계: Connect Timeout](step-02-connect-timeout.md)
 - [3단계: Read Timeout](step-03-read-timeout.md)
+- [4단계: Timeout의 한계](step-04-timeout-limit.md)
