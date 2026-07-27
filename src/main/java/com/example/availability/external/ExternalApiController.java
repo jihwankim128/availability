@@ -21,7 +21,17 @@ public class ExternalApiController {
 	public ExternalApiResult featuredProduct() {
 		Instant startedAt = Instant.now();
 		FeaturedProduct product = externalApiClient.getFeaturedProduct();
+		return result(product, startedAt);
+	}
 
+	@GetMapping("/unreachable-product")
+	public ExternalApiResult unreachableProduct() {
+		Instant startedAt = Instant.now();
+		FeaturedProduct product = externalApiClient.getFeaturedProductFromUnreachableHost();
+		return result(product, startedAt);
+	}
+
+	private ExternalApiResult result(FeaturedProduct product, Instant startedAt) {
 		return new ExternalApiResult(product.id(), product.name(), startedAt, Instant.now());
 	}
 

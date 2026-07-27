@@ -25,6 +25,7 @@ for _ in {1..60}; do
     echo "Grafana shutdown dashboard: http://localhost:3000/d/step-02-immediate-shutdown"
     echo "Grafana session dashboard: http://localhost:3000/d/session-continuity"
     echo "Grafana external API dashboard: http://localhost:3000/d/external-api-step-01-latency-propagation"
+    echo "Grafana external API Connect Timeout dashboard: http://localhost:3000/d/external-api-step-02-connect-timeout"
     echo "Grafana login: admin / admin"
     exit 0
   fi

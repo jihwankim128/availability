@@ -21,6 +21,7 @@ bash scripts/observability/start.sh
 - Grafana: <http://localhost:3000/d/step-02-immediate-shutdown>
 - 세션 연속성 대시보드: <http://localhost:3000/d/session-continuity>
 - 외부 API 지연 대시보드: <http://localhost:3000/d/external-api-step-01-latency-propagation>
+- 외부 API Connect Timeout 대시보드: <http://localhost:3000/d/external-api-step-02-connect-timeout>
 - 계정: `admin` / `admin`
 - Prometheus: <http://localhost:9090>
 

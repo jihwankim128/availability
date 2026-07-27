@@ -13,9 +13,10 @@
 ## 진행 현황
 
 - [x] 1단계: 외부 API 지연이 정상 API까지 전파되는 현상 확인
-- [ ] 2단계: Connect/Read Timeout으로 외부 호출 대기 시간 제한
-- [ ] 3단계: Timeout 적용 후에도 지속되는 외부 호출과 실패 확인
-- [ ] 4단계: Circuit Breaker로 연쇄 장애 차단
+- [x] 2단계: Connect Timeout으로 TCP 연결 대기 시간 제한
+- [ ] 3단계: Read Timeout으로 연결 후 응답 대기 시간 제한
+- [ ] 4단계: Timeout 적용 후에도 지속되는 외부 호출과 실패 확인
+- [ ] 5단계: Circuit Breaker로 연쇄 장애 차단
 - [ ] 후속 과제: Retry, Bulkhead, Inbound·Outbound Rate Limit, Idempotency Key
 
 ## 단계별 진행 순서
@@ -23,9 +24,10 @@
 | 단계 | 실험과 관측 목표 |
 |---|---|
 | 1단계 | 서비스 기준의 명시적 Timeout이 없는 외부 API 지연이 Thread를 고갈시키고 정상 API까지 영향을 주는지 확인 |
-| 2단계 | Connect Timeout과 Read Timeout을 명시해 호출당 대기 시간과 동시 점유 Thread를 제한 |
-| 3단계 | Timeout이 있어도 지속 장애 중에는 모든 요청이 외부 호출과 실패를 반복하는 한계 확인 |
-| 4단계 | Circuit Breaker의 `CLOSED → OPEN → HALF_OPEN`과 실제 외부 호출 감소, 정상 API 보호 확인 |
+| 2단계 | TCP 연결이 성립하지 않는 장애에 Connect Timeout을 명시해 연결 대기와 동시 점유 Thread를 제한 |
+| 3단계 | 연결 후 응답이 오지 않는 장애에 Read Timeout을 명시해 응답 대기 시간을 제한 |
+| 4단계 | Timeout이 있어도 지속 장애 중에는 모든 요청이 외부 호출과 실패를 반복하는 한계 확인 |
+| 5단계 | Circuit Breaker의 `CLOSED → OPEN → HALF_OPEN`과 실제 외부 호출 감소, 정상 API 보호 확인 |
 
 ## History
 
@@ -53,6 +55,16 @@
 - Grafana에서 HTTP 성공과 Client Timeout 실패를 별도 시계열로 표시해 사용자 관점의 장애를 확인
 - 실행 결과의 k6 기본 메트릭과 그래프를 `k6-report.html`로 로컬에 보존
 
+### 2026-07-26 — 2단계: Connect Timeout으로 연결 장애 격리
+
+- Docker 전용 네트워크의 blackhole 컨테이너가 TCP SYN을 폐기해 실제 연결 대기 상황을 재현
+- Spring Connect Timeout 1초가 k6 Client Timeout 3초보다 먼저 동작하도록 구성
+- 연결 장애 요청 250건이 모두 약 1초 후 HTTP 504로 끝나고 k6 Client Timeout은 0건임을 확인
+- 외부 API 처리 중 요청은 최대 10개, Tomcat 사용 중 Thread는 최대 `11/40`으로 제한
+- 관계없는 `/api/info` 121건은 모두 1초 안에 HTTP 200으로 완료되고 p95 약 7.82ms 유지
+- 실행 ID `20260726-210955`의 k6 JSON·HTML 결과와 Grafana 대시보드 확인
+
 ## 단계별 문서
 
 - [1단계: 외부 API 지연 전파](step-01-latency-propagation.md)
+- [2단계: Connect Timeout](step-02-connect-timeout.md)

@@ -1,0 +1,52 @@
+name: availability-external-api-step-02
+
+services:
+  application:
+    image: eclipse-temurin:21-jre
+    depends_on:
+      external-api:
+        condition: service_started
+      blackhole:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../../../build/libs/availability-0.0.1-SNAPSHOT.jar:/app/application.jar:ro
+    environment:
+      EXTERNAL_API_BASE_URL: http://external-api:8080
+      EXTERNAL_API_UNREACHABLE_BASE_URL: http://blackhole:8080
+      EXPERIMENT_RUN_ID: ${EXPERIMENT_RUN_ID:-manual}
+    command:
+      - java
+      - -jar
+      - /app/application.jar
+      - --spring.profiles.active=external-api,external-api-step-02
+      - --server.port=8080
+
+  external-api:
+    image: wiremock/wiremock:3.13.2
+    ports:
+      - "9091:8080"
+    volumes:
+      - ../step-01/wiremock:/home/wiremock:ro
+    command:
+      - --async-response-enabled
+      - --async-response-threads
+      - "100"
+      - --container-threads
+      - "100"
+
+  blackhole:
+    image: nicolaka/netshoot:v0.13
+    cap_add:
+      - NET_ADMIN
+    entrypoint:
+      - /bin/sh
+      - -c
+    command:
+      - iptables -A INPUT -p tcp --dport 8080 -j DROP && exec sleep infinity
+    healthcheck:
+      test: ["CMD-SHELL", "iptables -C INPUT -p tcp --dport 8080 -j DROP"]
+      interval: 1s
+      timeout: 1s
+      retries: 10
