@@ -16,7 +16,7 @@
 - [x] 2단계: Connect Timeout으로 TCP 연결 대기 시간 제한
 - [x] 3단계: Read Timeout으로 연결 후 응답 대기 시간 제한
 - [x] 4단계: 지속 장애와 높은 유입량에서 드러나는 Timeout의 한계 확인
-- [ ] 5단계: Circuit Breaker로 연쇄 장애 차단
+- [x] 5단계: Circuit Breaker로 연쇄 장애 차단
 - [ ] 후속 과제: Retry, Bulkhead, Inbound·Outbound Rate Limit, Idempotency Key
 
 ## 단계별 진행 순서
@@ -85,9 +85,21 @@
 - 복구 후 외부 처리 중 요청 0개, Tomcat 사용 중 Thread 1개로 돌아오는 것을 확인
 - 실행 ID `20260728-010358`의 k6 JSON·HTML 결과와 Grafana 대시보드 확인
 
+### 2026-07-28 — 5단계: Circuit Breaker로 장애 전파 차단
+
+- 4단계와 같은 외부 기능 요청 2,299건, 5초 지연, 장애 중 50 RPS 조건에 Resilience4j Circuit Breaker만 추가
+- 초기 실패를 학습한 뒤 `CLOSED → OPEN`, 장애 중 세 차례 `HALF_OPEN → OPEN`, 복구 후 `HALF_OPEN → CLOSED` 전환 확인
+- 외부 기능 요청 1,984건을 외부 호출 없이 즉시 HTTP 503으로 종료하고 k6 Client Timeout은 0건
+- 실제 외부 호출은 약 2,046건에서 316건으로 약 84.6%, `read_timeout`은 1,581건에서 64건으로 약 96.0% 감소
+- 외부 API 처리 중 요청은 최대 26개, Tomcat 사용 중 Thread는 최대 `27/40`으로 제한
+- 관계없는 `/api/info` 141건이 모두 HTTP 200이면서 1초 안에 완료되고 p95 약 10.57ms 유지
+- 정상 API 가용 요청 비율이 4단계 약 51.1%에서 100%로 회복
+- 실행 ID `20260728-080147`의 k6 JSON·HTML 결과와 Grafana 대시보드 확인
+
 ## 단계별 문서
 
 - [1단계: 외부 API 지연 전파](step-01-latency-propagation.md)
 - [2단계: Connect Timeout](step-02-connect-timeout.md)
 - [3단계: Read Timeout](step-03-read-timeout.md)
 - [4단계: Timeout의 한계](step-04-timeout-limit.md)
+- [5단계: Circuit Breaker](step-05-circuit-breaker.md)

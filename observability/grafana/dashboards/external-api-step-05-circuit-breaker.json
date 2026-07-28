@@ -1,0 +1,130 @@
+{
+  "annotations": {"list": []},
+  "editable": false,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "0은 정상·복구, 1은 WireMock 응답이 5초 지연된 구간입니다.",
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "custom": {"axisLabel": "외부 API 상태", "drawStyle": "line", "fillOpacity": 35, "lineInterpolation": "stepAfter", "lineWidth": 3, "pointSize": 5, "showPoints": "always"}, "decimals": 0, "max": 1, "min": 0, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}}, "overrides": []},
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 0},
+      "id": 1,
+      "options": {"legend": {"displayMode": "list", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "single"}},
+      "targets": [{"editorMode": "code", "expr": "k6_external_fault_signal{run_id=~\"$run_id\"}", "legendFormat": "외부 API 장애 상태", "range": true, "refId": "A"}],
+      "title": "외부 API 지속 장애 구간",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "CLOSED=0, OPEN=1, HALF_OPEN=2입니다. 장애를 감지하면 OPEN, 시험 호출 시 HALF_OPEN, 복구되면 CLOSED로 돌아옵니다.",
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "custom": {"axisLabel": "Circuit Breaker 상태", "drawStyle": "line", "fillOpacity": 30, "lineInterpolation": "stepAfter", "lineWidth": 3, "pointSize": 5, "showPoints": "always"}, "decimals": 0, "mappings": [{"options": {"0": {"text": "CLOSED"}, "1": {"text": "OPEN"}, "2": {"text": "HALF_OPEN"}}, "type": "value"}], "max": 2, "min": 0, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}, {"color": "orange", "value": 2}]}}, "overrides": []},
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 0},
+      "id": 2,
+      "options": {"legend": {"displayMode": "list", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "single"}},
+      "targets": [{"editorMode": "code", "expr": "sum without(state) (resilience4j_circuitbreaker_state{run_id=~\"$run_id\",name=\"externalApi\",state=\"open\"}) + 2 * sum without(state) (resilience4j_circuitbreaker_state{run_id=~\"$run_id\",name=\"externalApi\",state=\"half_open\"})", "legendFormat": "Circuit Breaker 상태", "range": true, "refId": "A"}],
+      "title": "Circuit Breaker 상태 전환",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "504는 실제 외부 호출 후 Read Timeout, 503은 OPEN 상태에서 외부 호출 없이 즉시 거절된 요청입니다.",
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "초당 완료 요청", "drawStyle": "line", "fillOpacity": 18, "lineWidth": 2, "pointSize": 4, "showPoints": "auto"}, "min": 0, "unit": "reqps"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 6},
+      "id": 3,
+      "options": {"legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"editorMode": "code", "expr": "rate(k6_external_user_success_total{run_id=~\"$run_id\"}[5s])", "legendFormat": "HTTP 200", "range": true, "refId": "A"},
+        {"editorMode": "code", "expr": "rate(k6_external_server_timeout_total{run_id=~\"$run_id\"}[5s])", "legendFormat": "Read Timeout → HTTP 504", "range": true, "refId": "B"},
+        {"editorMode": "code", "expr": "rate(k6_external_circuit_open_total{run_id=~\"$run_id\"}[5s])", "legendFormat": "Circuit OPEN → HTTP 503", "range": true, "refId": "C"},
+        {"editorMode": "code", "expr": "rate(k6_external_client_timeout_total{run_id=~\"$run_id\"}[5s])", "legendFormat": "k6 Client Timeout", "range": true, "refId": "D"}
+      ],
+      "title": "외부 기능 사용자 응답 결과",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "Circuit Breaker가 거절한 요청과 실제 외부 API까지 전달된 호출을 비교합니다.",
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "초당 요청", "drawStyle": "line", "fillOpacity": 20, "lineWidth": 3, "pointSize": 4, "showPoints": "auto"}, "min": 0, "unit": "reqps"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 6},
+      "id": 4,
+      "options": {"legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"editorMode": "code", "expr": "rate(external_api_calls_total{run_id=~\"$run_id\",target=\"normal\"}[5s])", "legendFormat": "실제 외부 호출", "range": true, "refId": "A"},
+        {"editorMode": "code", "expr": "rate(external_api_circuit_rejected_total{run_id=~\"$run_id\",target=\"normal\"}[5s])", "legendFormat": "즉시 차단", "range": true, "refId": "B"},
+        {"editorMode": "code", "expr": "rate(external_api_failures_total{run_id=~\"$run_id\",reason=\"read_timeout\"}[5s])", "legendFormat": "실제 Read Timeout", "range": true, "refId": "C"}
+      ],
+      "title": "외부 호출 차단 효과",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "외부 API를 사용하지 않는 /api/info는 같은 장애와 50 RPS에서도 계속 성공해야 합니다.",
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "초당 완료 요청", "drawStyle": "line", "fillOpacity": 18, "lineWidth": 2, "pointSize": 4, "showPoints": "auto"}, "min": 0, "unit": "reqps"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 15},
+      "id": 5,
+      "options": {"legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"editorMode": "code", "expr": "rate(k6_normal_api_success_total{run_id=~\"$run_id\"}[5s])", "legendFormat": "정상 API HTTP 200", "range": true, "refId": "A"},
+        {"editorMode": "code", "expr": "rate(k6_normal_api_failure_total{run_id=~\"$run_id\"}[5s])", "legendFormat": "정상 API 실패", "range": true, "refId": "B"}
+      ],
+      "title": "정상 API 사용자 응답 결과",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "HTTP 200이면서 1초 안에 완료된 정상 API 요청 비율입니다.",
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "custom": {"axisLabel": "1초 이내 성공률", "drawStyle": "line", "fillOpacity": 25, "lineWidth": 3, "pointSize": 4, "showPoints": "auto"}, "max": 100, "min": 0, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "orange", "value": 80}, {"color": "green", "value": 99}]}, "unit": "percent"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 15},
+      "id": 6,
+      "options": {"legend": {"calcs": ["min", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "single"}},
+      "targets": [{"editorMode": "code", "expr": "100 * rate(k6_normal_api_available_total{run_id=~\"$run_id\"}[5s]) / clamp_min(rate(k6_normal_api_available_total{run_id=~\"$run_id\"}[5s]) + rate(k6_normal_api_unavailable_total{run_id=~\"$run_id\"}[5s]), 0.001)", "legendFormat": "정상 API 가용 요청", "range": true, "refId": "A"}],
+      "title": "정상 API 가용 요청 비율",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "초기 실패 학습 구간을 제외하면 OPEN 상태에서 외부 대기 요청이 거의 없어야 합니다.",
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "요청 수", "drawStyle": "line", "fillOpacity": 20, "lineWidth": 3, "pointSize": 4, "showPoints": "auto"}, "decimals": 0, "min": 0}, "overrides": []},
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 24},
+      "id": 7,
+      "options": {"legend": {"calcs": ["max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"editorMode": "code", "expr": "max_over_time(external_api_in_flight{run_id=~\"$run_id\"}[5s])", "legendFormat": "외부 응답 대기 중", "range": true, "refId": "A"},
+        {"editorMode": "code", "expr": "max_over_time(tomcat_threads_busy_threads{run_id=~\"$run_id\"}[5s])", "legendFormat": "사용 중 Tomcat Thread", "range": true, "refId": "B"},
+        {"editorMode": "code", "expr": "tomcat_threads_config_max_threads{run_id=~\"$run_id\"}", "legendFormat": "최대 Tomcat Thread", "range": true, "refId": "C"}
+      ],
+      "title": "대기 요청과 Tomcat Thread",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "정상 API p95가 1초 아래로 유지되는지 확인합니다.",
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "응답시간", "drawStyle": "line", "fillOpacity": 15, "lineWidth": 2, "pointSize": 4, "showPoints": "auto"}, "min": 0, "unit": "s"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 24},
+      "id": 8,
+      "options": {"legend": {"calcs": ["max", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [{"editorMode": "code", "expr": "k6_normal_api_duration_p95{run_id=~\"$run_id\"}", "legendFormat": "정상 API p95", "range": true, "refId": "A"}],
+      "title": "정상 API 응답시간",
+      "type": "timeseries"
+    },
+    {
+      "gridPos": {"h": 9, "w": 24, "x": 0, "y": 33},
+      "id": 9,
+      "options": {"content": "### 그래프 읽는 법\n\n- **0~10초**: Circuit Breaker는 `CLOSED`, 외부 기능과 정상 API가 성공합니다.\n- **10초 이후**: 초기 Read Timeout으로 실패율을 학습한 뒤 `OPEN`으로 전환합니다.\n- **OPEN**: 외부 기능은 외부 API를 호출하지 않고 HTTP 503으로 빠르게 실패합니다. 외부 기능 자체가 복구된 것은 아닙니다.\n- **10초마다 HALF_OPEN**: 5개의 시험 호출로 외부 API 회복 여부를 확인합니다. 장애 중에는 다시 OPEN으로, 50초 이후에는 CLOSED로 돌아옵니다.\n- **가용성 보호**: 실제 외부 호출과 Thread 점유가 줄어 관계없는 `/api/info`는 계속 1초 안에 성공해야 합니다.\n- 4단계와 비교할 핵심은 외부 기능의 성공률이 아니라 정상 API 가용성과 불필요한 실제 외부 호출 수입니다.", "mode": "markdown"},
+      "targets": [],
+      "title": "외부 API 5단계 관측 기준",
+      "type": "text"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 41,
+  "tags": ["availability", "k6", "external-api", "circuit-breaker"],
+  "templating": {"list": [{"allValue": ".*", "current": {}, "datasource": {"type": "prometheus", "uid": "prometheus"}, "definition": "label_values(k6_external_fault_signal{step=\"05\"}, run_id)", "hide": 0, "includeAll": true, "label": "실행 ID", "multi": false, "name": "run_id", "options": [], "query": "label_values(k6_external_fault_signal{step=\"05\"}, run_id)", "refresh": 2, "regex": "", "skipUrlSync": false, "sort": 2, "type": "query"}]},
+  "time": {"from": "now-30m", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "외부 API 5단계 - Circuit Breaker",
+  "uid": "external-api-step-05-circuit-breaker",
+  "version": 1
+}

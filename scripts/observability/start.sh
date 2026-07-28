@@ -28,6 +28,7 @@ for _ in {1..60}; do
     echo "Grafana external API Connect Timeout dashboard: http://localhost:3000/d/external-api-step-02-connect-timeout"
     echo "Grafana external API Read Timeout dashboard: http://localhost:3000/d/external-api-step-03-read-timeout"
     echo "Grafana external API Timeout limit dashboard: http://localhost:3000/d/external-api-step-04-timeout-limit"
+    echo "Grafana external API Circuit Breaker dashboard: http://localhost:3000/d/external-api-step-05-circuit-breaker"
     echo "Grafana login: admin / admin"
     exit 0
   fi

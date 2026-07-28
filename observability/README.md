@@ -24,6 +24,7 @@ bash scripts/observability/start.sh
 - 외부 API Connect Timeout 대시보드: <http://localhost:3000/d/external-api-step-02-connect-timeout>
 - 외부 API Read Timeout 대시보드: <http://localhost:3000/d/external-api-step-03-read-timeout>
 - 외부 API Timeout 한계 대시보드: <http://localhost:3000/d/external-api-step-04-timeout-limit>
+- 외부 API Circuit Breaker 대시보드: <http://localhost:3000/d/external-api-step-05-circuit-breaker>
 - 계정: `admin` / `admin`
 - Prometheus: <http://localhost:9090>
 

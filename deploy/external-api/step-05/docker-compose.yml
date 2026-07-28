@@ -1,0 +1,34 @@
+name: availability-external-api-step-05
+
+services:
+  application:
+    image: eclipse-temurin:21-jre
+    depends_on:
+      external-api:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../../../build/libs/availability-0.0.1-SNAPSHOT.jar:/app/application.jar:ro
+    environment:
+      EXTERNAL_API_BASE_URL: http://external-api:8080
+      EXPERIMENT_RUN_ID: ${EXPERIMENT_RUN_ID:-manual}
+    command:
+      - java
+      - -jar
+      - /app/application.jar
+      - --spring.profiles.active=external-api,external-api-step-05
+      - --server.port=8080
+
+  external-api:
+    image: wiremock/wiremock:3.13.2
+    ports:
+      - "9091:8080"
+    volumes:
+      - ../step-01/wiremock:/home/wiremock:ro
+    command:
+      - --async-response-enabled
+      - --async-response-threads
+      - "300"
+      - --container-threads
+      - "300"

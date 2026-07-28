@@ -1,5 +1,6 @@
 package com.example.availability.external;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -8,6 +9,14 @@ import org.springframework.web.client.ResourceAccessException;
 
 @RestControllerAdvice(assignableTypes = ExternalApiController.class)
 public class ExternalApiExceptionHandler {
+
+	@ExceptionHandler(CallNotPermittedException.class)
+	ProblemDetail handleOpenCircuit(CallNotPermittedException exception) {
+		ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
+		problem.setTitle("External API circuit is open");
+		problem.setDetail("The external API call was rejected immediately to protect this service.");
+		return problem;
+	}
 
 	@ExceptionHandler(ResourceAccessException.class)
 	ProblemDetail handleUnavailableExternalApi(ResourceAccessException exception) {

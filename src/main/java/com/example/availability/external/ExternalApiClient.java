@@ -4,9 +4,12 @@ import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -17,22 +20,33 @@ public class ExternalApiClient {
 	private final RestClient restClient;
 	private final RestClient unreachableRestClient;
 	private final MeterRegistry meterRegistry;
+	private final CircuitBreaker circuitBreaker;
 	private final AtomicInteger inFlight = new AtomicInteger();
 
 	public ExternalApiClient(
 			@Qualifier("externalApiRestClient") RestClient externalApiRestClient,
 			@Qualifier("unreachableExternalApiRestClient") RestClient unreachableExternalApiRestClient,
-			MeterRegistry meterRegistry
+			MeterRegistry meterRegistry,
+			ObjectProvider<CircuitBreaker> circuitBreakerProvider
 	) {
 		this.restClient = externalApiRestClient;
 		this.unreachableRestClient = unreachableExternalApiRestClient;
 		this.meterRegistry = meterRegistry;
+		this.circuitBreaker = circuitBreakerProvider.getIfAvailable();
 		Gauge.builder("external.api.in.flight", inFlight, AtomicInteger::get)
 				.description("Number of requests currently waiting for the external API")
 				.register(meterRegistry);
 	}
 
 	public FeaturedProduct getFeaturedProduct() {
+		if (circuitBreaker != null) {
+			try {
+				return circuitBreaker.executeSupplier(() -> getFeaturedProduct(restClient, "normal"));
+			} catch (CallNotPermittedException exception) {
+				meterRegistry.counter("external.api.circuit.rejected", "target", "normal").increment();
+				throw exception;
+			}
+		}
 		return getFeaturedProduct(restClient, "normal");
 	}
 
